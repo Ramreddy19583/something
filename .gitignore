@@ -1,0 +1,42 @@
+# Node
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Testing
+coverage/
+
+#Build output
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+#private keys   
+*.pem
+
+#python
+pycache/
+.venv/
+venv/
+
+#local IDE settings 
+.idea/
+

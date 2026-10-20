@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: opportunity-ai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opportunity_user
+      POSTGRES_PASSWORD: opportunity_secure_pass_2026
+      POSTGRES_DB: opportunity_ai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opportunity_user -d opportunity_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: opportunity-ai-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://opportunity_user:opportunity_secure_pass_2026@db:5432/opportunity_ai
+      - JWT_SECRET=production-grade-super-secret-key-min-32-chars-long!
+      - COOKIE_NAME=oppai_session
+      - NODE_ENV=production
+      - AI_PROVIDER=rule-based
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

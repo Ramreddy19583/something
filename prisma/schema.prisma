@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum EducationLevel {
+  SCHOOL
+  DIPLOMA
+  UNDERGRADUATE
+  POSTGRADUATE
+  RECENT_GRADUATE
+  OTHER
+}
+
+enum RemotePreference {
+  REMOTE_ONLY
+  ONSITE_ONLY
+  HYBRID_OR_ANY
+}
+
+enum Category {
+  INTERNSHIP
+  SCHOLARSHIP
+  HACKATHON
+  COMPETITION
+  RESEARCH
+  APPRENTICESHIP
+  CERTIFICATION
+  TRAINING
+  PLACEMENT
+}
+
+enum CompensationType {
+  PAID
+  UNPAID
+  STIPEND
+  FUNDING
+  PRIZE
+  NOT_APPLICABLE
+}
+
+enum SourceType {
+  OFFICIAL_PORTAL
+  INSTITUTION
+  GOVERNMENT_FEED
+  VERIFIED_PARTNER
+  MANUAL_ENTRY
+}
+
+enum VerificationStatus {
+  IMPORTED
+  NEEDS_REVIEW
+  VERIFIED
+  EXPIRED
+  WITHDRAWN
+  SUSPICIOUS
+}
+
+enum ApplicationStatus {
+  INTERESTED
+  PREPARING
+  APPLIED
+  ASSESSMENT
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum NotificationType {
+  DEADLINE_APPROACHING
+  NEW_MATCH
+  STATUS_CHANGE
+  SYSTEM
+}
+
+enum SkillProficiency {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model User {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  passwordHash    String
+  name            String
+  role            Role              @default(STUDENT)
+  isEmailVerified Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  profile         StudentProfile?
+  savedItems      SavedOpportunity[]
+  applications    Application[]
+  reminders       Reminder[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+
+  @@index([email])
+}
+
+model StudentProfile {
+  id                   String            @id @default(cuid())
+  userId               String            @unique
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  educationLevel       EducationLevel    @default(UNDERGRADUATE)
+  degree               String?
+  fieldOfStudy         String?
+  currentYear          Int?
+  graduationYear       Int?
+  gpaOrPercentage      String?
+  country              String            @default("India")
+  stateOrCity          String?
+  preferredLocations   String[]          @default([])
+  remotePreference     RemotePreference  @default(HYBRID_OR_ANY)
+  preferredCategories  Category[]        @default([])
+  careerGoals          String[]          @default([])
+  bio                  String?
+  onboardingCompleted  Boolean           @default(false)
+  
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  skills               UserSkill[]
+
+  @@index([educationLevel])
+  @@index([country])
+}
+
+model Skill {
+  id            String             @id @default(cuid())
+  name          String             @unique
+  category      String?            // e.g. "Programming", "Data", "Cloud", "Tools"
+  createdAt     DateTime           @default(now())
+  
+  userSkills    UserSkill[]
+  oppSkills     OpportunitySkill[]
+
+  @@index([name])
+}
+
+model UserSkill {
+  id          String            @id @default(cuid())
+  profileId   String
+  skillId     String
+  proficiency SkillProficiency  @default(INTERMEDIATE)
+
+  profile     StudentProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill       Skill             @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, skillId])
+  @@index([profileId])
+  @@index([skillId])
+}
+
+model Opportunity {
+  id                       String             @id @default(cuid())
+  title                    String
+  slug                     String             @unique
+  provider                 String
+  category                 Category
+  description              String             @db.Text
+  eligibilityRequirements  String             @db.Text
+  educationRequirements    EducationLevel[]   @default([])
+  location                 String?
+  isRemote                 Boolean            @default(false)
+  compensationType         CompensationType   @default(NOT_APPLICABLE)
+  compensationDetails      String?
+  applicationOpenDate      DateTime?
+  applicationDeadline      DateTime?
+  sourceUrl                String
+  canonicalUrl             String?
+  sourceType               SourceType         @default(OFFICIAL_PORTAL)
+  verificationStatus       VerificationStatus @default(VERIFIED)
+  verificationNotes        String?            @db.Text
+  firstSeenAt              DateTime           @default(now())
+  lastCheckedAt            DateTime           @default(now())
+  isPublished              Boolean            @default(true)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  skills                   OpportunitySkill[]
+  savedBy                  SavedOpportunity[]
+  applications             Application[]
+
+  @@index([category])
+  @@index([verificationStatus])
+  @@index([isPublished])
+  @@index([applicationDeadline])
+  @@index([provider])
+}
+
+model OpportunitySkill {
+  id             String       @id @default(cuid())
+  opportunityId  String
+  skillId        String
+  isMandatory    Boolean      @default(false)
+
+  opportunity    Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  skill          Skill        @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, skillId])
+  @@index([opportunityId])
+  @@index([skillId])
+}
+
+model SavedOpportunity {
+  id             String       @id @default(cuid())
+  userId         String
+  opportunityId  String
+  createdAt      DateTime     @default(now())
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity    Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([opportunityId])
+}
+
+model Application {
+  id             String             @id @default(cuid())
+  userId         String
+  opportunityId  String
+  status         ApplicationStatus  @default(INTERESTED)
+  appliedDate    DateTime?
+  deadline       DateTime?
+  notes          String?            @db.Text
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunity    Opportunity        @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  reminders      Reminder[]
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Reminder {
+  id             String       @id @default(cuid())
+  userId         String
+  applicationId  String?
+  title          String
+  dueDate        DateTime
+  isCompleted    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application    Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([dueDate])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  title      String
+  message    String           @db.Text
+  type       NotificationType @default(SYSTEM)
+  isRead     Boolean          @default(false)
+  link       String?
+  createdAt  DateTime         @default(now())
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String?
+  action     String
+  targetType String
+  targetId   String?
+  details    String?   @db.Text
+  ipAddress  String?
+  createdAt  DateTime  @default(now())
+
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
