@@ -534,6 +534,22 @@ export function answerWithGroundedSource(
       answer = `The listing categorizes compensation as ${opportunity.compensationType}, with no specific monetary amount disclosed.`;
       uncertainties.push("Exact financial disbursement schedule not published in initial listing.");
     }
+  } else if (
+    qLower.includes("interview") ||
+    qLower.includes("mock") ||
+    qLower.includes("prepare") ||
+    qLower.includes("screening")
+  ) {
+    const oppSkills = (opportunity.skills || []).map((s: any) => s.skill?.name).filter(Boolean);
+    const skillsList = oppSkills.length > 0 ? oppSkills.join(", ") : "Data structures, Problem solving, Core CS fundamentals";
+
+    answer = `🎯 Mock Interview & Preparation Guidance for ${opportunity.title} (${opportunity.provider}):\n\n` +
+      `Key Technical Focus Areas:\n• Core skills evaluated: ${skillsList}\n• Expected screening format: Technical fundamentals, real-world project walkthroughs, and problem-solving reasoning.\n\n` +
+      `Interviewer Feedback Tip:\nWhen answering technical or behavioral questions, use the STAR format (Situation, Task, Action, Result) with quantitative metrics. Emphasize actual engineering trade-offs and code quality.\n\n` +
+      `Practice Question for You:\n"Can you describe an architectural decision or significant bug you handled in a project involving ${oppSkills[0] || "core programming"}, and why you chose your specific approach?"`;
+
+    quotes.push(`Provider: ${opportunity.provider}`, `Category: ${opportunity.category}`, `Required Skills: ${skillsList}`);
+    uncertainties.push("Specific interview rounds may vary by evaluation panel.");
   } else {
     // General opportunity question
     answer = `${opportunity.title} is offered by ${opportunity.provider} under category ${opportunity.category}.\n\nOverview:\n${opportunity.description}\n\nOfficial Source: ${opportunity.sourceUrl}`;

@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     const isRemote = searchParams.get("isRemote");
     const isPaid = searchParams.get("isPaid");
     const location = searchParams.get("location")?.trim();
+    const batch = searchParams.get("batch")?.trim();
+    const workMode = searchParams.get("workMode")?.trim();
     const sort = searchParams.get("sort") || "relevance";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "12", 10)));
@@ -32,6 +34,7 @@ export async function GET(req: NextRequest) {
         { provider: { contains: q, mode: "insensitive" } },
         { description: { contains: q, mode: "insensitive" } },
         { eligibilityRequirements: { contains: q, mode: "insensitive" } },
+        { skills: { some: { skill: { name: { contains: q, mode: "insensitive" } } } } },
       ];
     }
 
@@ -45,8 +48,24 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    if (isRemote !== null && isRemote !== undefined && isRemote !== "") {
+    if (workMode === "REMOTE") {
+      where.isRemote = true;
+    } else if (workMode === "ONSITE") {
+      where.isRemote = false;
+    } else if (isRemote !== null && isRemote !== undefined && isRemote !== "") {
       where.isRemote = isRemote === "true";
+    }
+
+    if (batch) {
+      const batchConditions = [
+        { eligibilityRequirements: { contains: batch, mode: "insensitive" as Prisma.QueryMode } },
+        { description: { contains: batch, mode: "insensitive" as Prisma.QueryMode } },
+        { title: { contains: batch, mode: "insensitive" as Prisma.QueryMode } },
+      ];
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+        { OR: batchConditions },
+      ];
     }
 
     if (isPaid === "true") {

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Sparkles,
   Send,
@@ -13,27 +14,41 @@ import {
   CheckCircle2,
   Copy,
   Check,
+  MessageSquare,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 
-export default function AiAssistantPage() {
+function AiAssistantContent() {
+  const searchParams = useSearchParams();
+  const initialOppId = searchParams.get("oppId") || "";
+  const initialMode = searchParams.get("mode") || "";
+
   const [activeTab, setActiveTab] = useState<"chat" | "resume">("chat");
   const [opportunities, setOpportunities] = useState<any[]>([]);
-  const [selectedOppId, setSelectedOppId] = useState<string>("");
+  const [selectedOppId, setSelectedOppId] = useState<string>(initialOppId);
+  const [isMockInterviewMode, setIsMockInterviewMode] = useState<boolean>(initialMode === "mock-interview");
   const [query, setQuery] = useState("");
   const [chatLog, setChatLog] = useState<any[]>([
     {
       sender: "ai",
-      text: "Hello! I am your Opportunity AI Advisor. I am grounded directly in official opportunity documents and your student profile. Ask me about eligibility rules, missing qualifications, or how to prepare your application.",
+      text: initialMode === "mock-interview"
+        ? "🎯 Welcome to your Mock Interview Practice Session! I will act as your technical screening interviewer for this listing.\n\nLet's begin with your first question:\n\"Can you walk me through an end-to-end technical project you built, the core architectural decisions or trade-offs you made, and how you verified its performance?\"\n\nType your response below, and I will critique it using the STAR format (Situation, Task, Action, Result) and ask follow-up questions!"
+        : "Hello! I am your Opportunity AI Advisor. I am grounded directly in official opportunity documents and your student profile. Ask me about eligibility rules, missing qualifications, interview preparation, or how to prepare your application.",
       evidence: ["Platform Verified Ground Truth Rules"],
       uncertainties: [],
-      suggestedQuestions: [
-        "What are the eligibility requirements for Google Summer of Code?",
-        "How do I apply for the Prime Minister's Research Fellowship (PMRF)?",
-        "Am I eligible for Smart India Hackathon?",
-      ],
+      suggestedQuestions: initialMode === "mock-interview"
+        ? [
+            "Give me feedback on my response using the STAR method",
+            "Ask me a technical question about data structures & algorithms",
+            "What common interview mistakes should I avoid for this role?",
+          ]
+        : [
+            "What are the eligibility requirements for Google Summer of Code?",
+            "How do I prepare for technical interviews for research fellowships?",
+            "Am I eligible for Smart India Hackathon?",
+          ],
     },
   ]);
   const [loadingAnswer, setLoadingAnswer] = useState(false);
@@ -48,11 +63,17 @@ export default function AiAssistantPage() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/opportunities?limit=15")
+    fetch("/api/opportunities?limit=25")
       .then((res) => res.json())
-      .then((data) => setOpportunities(data.opportunities || []))
+      .then((data) => {
+        const opps = data.opportunities || [];
+        setOpportunities(opps);
+        if (initialOppId && opps.some((o: any) => o.id === initialOppId)) {
+          setSelectedOppId(initialOppId);
+        }
+      })
       .catch(console.error);
-  }, []);
+  }, [initialOppId]);
 
   const handleSendQuery = async (queryText?: string) => {
     const textToSend = queryText || query;
@@ -143,16 +164,18 @@ export default function AiAssistantPage() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const selectedOpportunity = opportunities.find((o) => o.id === selectedOppId);
+
   return (
     <div className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-indigo-600" />
-            <span>AI Career & Opportunity Advisor</span>
+            <span>AI Career & Interview Advisor</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Grounded in verified listings. Strictly forbids hallucinated rules or fabricated achievements.
+            Grounded in verified listings and authoritative sources. Zero hallucinated eligibility conditions.
           </p>
         </div>
 
@@ -165,7 +188,7 @@ export default function AiAssistantPage() {
               activeTab === "chat" ? "bg-white text-indigo-700 shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Grounded Q&A
+            Grounded Q&A & Mock Interview
           </button>
           <button
             type="button"
@@ -181,6 +204,32 @@ export default function AiAssistantPage() {
 
       {activeTab === "chat" ? (
         <div className="space-y-4">
+          {/* Mock Interview Alert Banner if active */}
+          {isMockInterviewMode && selectedOpportunity && (
+            <div className="p-3 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xs">
+                  🎯
+                </span>
+                <div>
+                  <span className="font-bold text-indigo-900">
+                    Mock Interview Practice: {selectedOpportunity.title}
+                  </span>
+                  <span className="text-[11px] text-slate-600 ml-1.5">
+                    ({selectedOpportunity.provider})
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMockInterviewMode(false)}
+                className="text-xs text-indigo-600 hover:underline font-medium self-end sm:self-auto"
+              >
+                Exit Mock Mode
+              </button>
+            </div>
+          )}
+
           {/* Opportunity Context selector */}
           <Card className="p-3 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
@@ -188,7 +237,7 @@ export default function AiAssistantPage() {
               <select
                 value={selectedOppId}
                 onChange={(e) => setSelectedOppId(e.target.value)}
-                className="w-full sm:w-80 text-xs rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 focus:border-indigo-600"
+                className="w-full sm:w-80 text-xs rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 focus:border-indigo-600 focus:outline-none"
               >
                 <option value="">General (All Verified Opportunities)</option>
                 {opportunities.map((opp) => (
@@ -199,7 +248,7 @@ export default function AiAssistantPage() {
               </select>
             </div>
 
-            <div className="flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <div className="flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
               <span>Evidence-Backed Response Mode</span>
             </div>
@@ -286,7 +335,7 @@ export default function AiAssistantPage() {
                 <div className="flex justify-start">
                   <div className="bg-white rounded-2xl p-3 border border-slate-200 text-xs text-slate-500 flex items-center gap-2">
                     <Sparkles className="h-4 w-4 animate-spin text-indigo-600" />
-                    <span>Cross-referencing verified opportunity documents...</span>
+                    <span>Evaluating against verified documents and screening rubrics...</span>
                   </div>
                 </div>
               )}
@@ -304,8 +353,9 @@ export default function AiAssistantPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything about eligibility, deadlines, stipend, or application steps..."
+                placeholder={isMockInterviewMode ? "Type your interview response or ask for clarification..." : "Ask anything about eligibility, deadlines, interview preparation, or application steps..."}
                 className="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-indigo-600 focus:outline-none"
+                aria-label="Ask AI Advisor"
               />
               <Button
                 type="submit"
@@ -313,6 +363,7 @@ export default function AiAssistantPage() {
                 size="sm"
                 isLoading={loadingAnswer}
                 className="rounded-xl px-4"
+                aria-label="Send query"
               >
                 <Send className="h-4 w-4" />
               </Button>
@@ -428,5 +479,13 @@ export default function AiAssistantPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AiAssistantPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading AI Advisor...</div>}>
+      <AiAssistantContent />
+    </Suspense>
   );
 }

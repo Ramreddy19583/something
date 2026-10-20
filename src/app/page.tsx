@@ -140,16 +140,20 @@ export default function HomePage() {
 
           {/* Primary CTA Buttons */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/discover">
-              <Button variant="outline" size="sm" className="rounded-lg">
-                <Compass className="h-4 w-4 mr-1.5" />
-                Browse All Listings
-              </Button>
+            <Link
+              href="/discover"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:outline-none"
+              aria-label="Explore Verified Opportunities"
+            >
+              <span>Explore Verified Opportunities</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/signup">
-              <Button variant="primary" size="sm" className="rounded-lg">
-                Create Free Student Account
-              </Button>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold shadow-xs transition-all focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:outline-none"
+              aria-label="Get Started Free"
+            >
+              <span>Get Started Free</span>
             </Link>
           </div>
         </div>
@@ -324,10 +328,13 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 text-center">
-            <Link href="/signup">
-              <Button size="lg" className="rounded-xl shadow-md">
-                Get Started with Opportunity AI
-              </Button>
+            <Link
+              href="/signup"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-md transition-all focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:outline-none"
+              aria-label="Get Started Free with Opportunity AI"
+            >
+              <span>Get Started Free</span>
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>

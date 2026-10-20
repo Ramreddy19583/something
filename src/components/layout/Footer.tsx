@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/discover" className="hover:text-indigo-600">
-                  Explore Verified Listings
+                  Discover Opportunities
                 </Link>
               </li>
               <li>
@@ -76,17 +76,17 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/skills" className="hover:text-indigo-600">
-                  Skill Gap & Free Resources
+                  Skills & Resources
                 </Link>
               </li>
               <li>
                 <Link href="/ai-assistant" className="hover:text-indigo-600">
-                  Source-Grounded AI Advisor
+                  AI Advisor
                 </Link>
               </li>
               <li>
                 <Link href="/profile" className="hover:text-indigo-600">
-                  Data Privacy & Profile Settings
+                  Profile & Privacy Settings
                 </Link>
               </li>
             </ul>
