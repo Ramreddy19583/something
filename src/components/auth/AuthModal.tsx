@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import Link from "next/link";
-import { X, Sparkles, LogIn, UserPlus, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { X, Sparkles, ShieldCheck } from "lucide-react";
+import { EmailAuthFlow } from "@/components/auth/EmailAuthFlow";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,8 +15,8 @@ interface AuthModalProps {
 export function AuthModal({
   isOpen,
   onClose,
-  title = "Sign In to Access Student Tools",
-  description = "Opportunity AI lets you browse and search all verified opportunities freely. Sign in or create a free student account to save listings, track applications, and unlock personalized AI match scores.",
+  title = "Sign In with Email",
+  description = "Opportunity AI lets you browse all verified opportunities freely. Enter your email to save listings, track applications, and unlock personalized AI matches.",
   callbackUrl = "/discover",
 }: AuthModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -71,38 +70,15 @@ export function AuthModal({
           {title}
         </h3>
 
-        <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
+        <p className="mt-1 text-xs text-slate-600 leading-relaxed mb-4">
           {description}
         </p>
 
-        <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
-          <Link
-            href={`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            className="flex-1"
-          >
-            <Button
-              variant="primary"
-              size="md"
-              className="w-full gap-2 justify-center font-medium"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>Log In</span>
-            </Button>
-          </Link>
-          <Link
-            href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            className="flex-1"
-          >
-            <Button
-              variant="outline"
-              size="md"
-              className="w-full gap-2 justify-center font-medium"
-            >
-              <UserPlus className="h-4 w-4" />
-              <span>Sign Up Free</span>
-            </Button>
-          </Link>
-        </div>
+        <EmailAuthFlow
+          callbackUrl={callbackUrl}
+          onSuccess={onClose}
+          isModal={true}
+        />
 
         <div className="mt-4 pt-3 border-t border-slate-100 text-center">
           <button

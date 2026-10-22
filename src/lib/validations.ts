@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const SendOtpSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address").toLowerCase(),
+});
+
+export const VerifyOtpSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address").toLowerCase(),
+  code: z.string().trim().length(6, "Verification code must be exactly 6 digits").regex(/^\d{6}$/, "Code must only contain digits"),
+});
+
 export const SignUpSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().trim().email("Invalid email address").toLowerCase(),
@@ -7,13 +16,14 @@ export const SignUpSchema = z.object({
     .string()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Za-z]/, "Password must contain at least one letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .optional(),
   role: z.enum(["STUDENT", "ADMIN"]).optional().default("STUDENT"),
 });
 
 export const LoginSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Password is required").optional(),
 });
 
 export const PasswordRecoverSchema = z.object({

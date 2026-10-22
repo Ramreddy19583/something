@@ -20,6 +20,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { AuthModal } from "@/components/auth/AuthModal";
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -30,6 +32,7 @@ export function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -311,18 +314,13 @@ export function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <Link
-                href="/login"
-                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-xs sm:text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors focus:ring-2 focus:ring-indigo-600 focus:outline-none"
               >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-xs sm:text-sm font-medium text-white shadow-sm hover:bg-indigo-700 transition-colors focus:ring-2 focus:ring-indigo-600 focus:outline-none"
-              >
-                Sign Up
-              </Link>
+                Sign In
+              </button>
             </div>
           )}
 
@@ -422,26 +420,30 @@ export function Navbar() {
                 </div>
               </>
             ) : (
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center px-4 py-2.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 min-h-[44px]"
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setAuthModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center px-4 py-2.5 rounded-lg bg-indigo-600 text-sm font-semibold text-white min-h-[44px]"
                 >
-                  Log In
-                </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center px-4 py-2.5 rounded-lg bg-indigo-600 text-sm font-medium text-white min-h-[44px]"
-                >
-                  Sign Up Free
-                </Link>
+                  Sign In with Email
+                </button>
               </div>
             )}
           </div>
         </div>
       )}
+
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        title="Sign In with Email"
+        description="Enter your email to receive a secure 6-digit verification code. Restores your saved items and application tracker instantly."
+        callbackUrl={pathname || "/dashboard"}
+      />
     </header>
   );
 }
