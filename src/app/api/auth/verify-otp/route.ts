@@ -14,13 +14,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, code } = parsed.data;
+    const { email, code, otp } = parsed.data;
+    const verificationCode = code || otp;
 
     // Check verification code
     const record = await prisma.verificationCode.findFirst({
       where: {
         email,
-        code,
+        code: verificationCode,
         used: false,
         expiresAt: {
           gt: new Date(),

@@ -6,7 +6,11 @@ export const SendOtpSchema = z.object({
 
 export const VerifyOtpSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address").toLowerCase(),
-  code: z.string().trim().length(6, "Verification code must be exactly 6 digits").regex(/^\d{6}$/, "Code must only contain digits"),
+  code: z.string().trim().length(6, "Verification code must be exactly 6 digits").regex(/^\d{6}$/, "Code must only contain digits").optional(),
+  otp: z.string().trim().length(6, "Verification code must be exactly 6 digits").regex(/^\d{6}$/, "Code must only contain digits").optional(),
+}).refine((data) => data.code || data.otp, {
+  message: "Verification code is required",
+  path: ["code"],
 });
 
 export const SignUpSchema = z.object({
