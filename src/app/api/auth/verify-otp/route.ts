@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       data: { used: true },
     });
 
-    // Find or create user
+    // Find existing user
     let user = await prisma.user.findUnique({
       where: { email },
       include: {
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
     });
 
     let isNewUser = false;
+
     if (!user) {
       isNewUser = true;
       // Derive display name from email (e.g. "alex.smith@gmail.com" -> "Alex Smith")
@@ -101,6 +102,14 @@ export async function POST(req: NextRequest) {
         where: { id: user.id },
         data: { isEmailVerified: true },
       });
+    }
+
+    // Guard check to satisfy TypeScript compiler (ensures user is non-null)
+    if (!user) {
+      return NextResponse.json(
+        { error: "Failed to locate or create user." },
+        { status: 500 }
+      );
     }
 
     // Generate JWT token
