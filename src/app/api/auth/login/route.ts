@@ -30,6 +30,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!password || !user.passwordHash) {
+      return NextResponse.json(
+        { error: "Invalid email or password credentials." },
+        { status: 401 }
+      );
+    }
+
     const isValid = await verifyPassword(password, user.passwordHash);
     if (!isValid) {
       return NextResponse.json(

@@ -27,6 +27,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!password) {
+      return NextResponse.json(
+        { error: "Password is required for registration." },
+        { status: 400 }
+      );
+    }
+
     const passwordHash = await hashPassword(password);
     const assignedRole = role === "ADMIN" ? "STUDENT" : "STUDENT"; // Prevent self-assigning admin
 
